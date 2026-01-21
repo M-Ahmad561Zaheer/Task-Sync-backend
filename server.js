@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const connectDB = require("./config/db");
+const connectDB = require("./src/config/db");
 
 const app = express();
 const server = http.createServer(app);
@@ -46,9 +46,9 @@ io.on("connection", (socket) => {
 });
 
 // Routes
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/tasks", require("./routes/taskRoutes"));
-app.use("/api/analytics", require("./routes/analyticsRoutes"));
+app.use("/api/auth", require("./src/routes/authRoutes"));
+app.use("/api/tasks", require("./src/routes/taskRoutes"));
+app.use("/api/analytics", require("./src/routes/analyticsRoutes"));
 
 // ✅ Global Error Handler (Production ke liye zaroori hai)
 app.use((err, req, res, next) => {

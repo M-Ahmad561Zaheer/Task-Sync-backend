@@ -21,8 +21,16 @@ const io = new Server(server, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*",
+  credentials: true
+}));
 app.use(express.json());
+
+// Root route (Checking status)
+app.get("/", (req, res) => {
+  res.send(`🚀 TaskSync Backend is running in ${process.env.NODE_ENV || 'development'} mode...`);
+});
 
 // Attach io to request (Used in controllers for real-time updates)
 app.use((req, res, next) => {

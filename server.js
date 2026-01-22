@@ -11,18 +11,24 @@ const server = http.createServer(app);
 // ✅ Database Connection
 connectDB();
 
+// ✅ Sahi Tareeqa: Naya domain allow karein
+const allowedOrigins = [
+  "https://az-tasksync.vercel.app", // Aapka naya domain
+  "https://frontend-task-sync.vercel.app" // Purana domain (backup ke liye)
+];
+
 // 🔔 Socket.IO setup
 const io = new Server(server, {
   cors: {
-    // Production mein process.env.FRONTEND_URL use karenge
-    origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "https://frontend-task-sync.vercel.app", 
-    methods: ["GET", "POST"]
+    origin: allowedOrigins, // Ab dono domains kaam karenge
+    methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "https://frontend-task-sync.vercel.app",
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());

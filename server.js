@@ -14,7 +14,8 @@ connectDB();
 // ✅ Sahi Tareeqa: Naya domain allow karein
 const allowedOrigins = [
   "https://az-tasksync.vercel.app", // Aapka naya domain
-  "https://frontend-task-sync.vercel.app" // Purana domain (backup ke liye)
+  "https://frontend-task-sync.vercel.app", // Purana domain (backup ke liye)
+  
 ];
 
 // 🔔 Socket.IO setup

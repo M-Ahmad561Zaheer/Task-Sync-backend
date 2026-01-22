@@ -22,7 +22,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*",
+  origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "https://frontend-task-sync.vercel.app",
   credentials: true
 }));
 app.use(express.json());

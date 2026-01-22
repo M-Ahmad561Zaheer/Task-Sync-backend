@@ -15,7 +15,7 @@ connectDB();
 const io = new Server(server, {
   cors: {
     // Production mein process.env.FRONTEND_URL use karenge
-    origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*", 
+    origin: process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "https://frontend-task-sync.vercel.app", 
     methods: ["GET", "POST"]
   },
 });

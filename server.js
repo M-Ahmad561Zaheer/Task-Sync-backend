@@ -4,24 +4,27 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./src/config/db");
+const passport = require("passport"); // ✅ 1. Passport require karein
+
+// ✅ 2. Passport Config Import karein (Jo file hum ne banayi thi)
+require("./src/config/passport"); 
 
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Database Connection
+// Database Connection
 connectDB();
 
-// ✅ Sahi Tareeqa: Naya domain allow karein
 const allowedOrigins = [
-  "https://az-tasksync.vercel.app", // Aapka naya domain
-  "https://frontend-task-sync.vercel.app", // Purana domain (backup ke liye)
-  
+  "https://az-tasksync.vercel.app",
+  "https://frontend-task-sync.vercel.app",
+  "http://localhost:5173"
 ];
 
-// 🔔 Socket.IO setup
+// Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins, // Ab dono domains kaam karenge
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -34,12 +37,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Root route (Checking status)
+// ✅ 3. Passport Initialize (Social Login ke liye lazmi hai)
+app.use(passport.initialize());
+
+// Root route
 app.get("/", (req, res) => {
   res.send(`🚀 TaskSync Backend is running in ${process.env.NODE_ENV || 'development'} mode...`);
 });
 
-// Attach io to request (Used in controllers for real-time updates)
+// Attach io to request
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -48,13 +54,9 @@ app.use((req, res, next) => {
 // Socket Logic
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-
-  // ✅ Yeh part notification ke liye lazmi hai
   socket.on("join", (userId) => {
     socket.join(userId);
-    console.log(`User with ID ${userId} joined their notification room.`);
   });
-
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
@@ -65,7 +67,7 @@ app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/tasks", require("./src/routes/taskRoutes"));
 app.use("/api/analytics", require("./src/routes/analyticsRoutes"));
 
-// ✅ Global Error Handler (Production ke liye zaroori hai)
+// Global Error Handler
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
@@ -74,7 +76,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Purana server.listen hata kar ye likhein:
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
@@ -82,5 +83,4 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-// Ye line Vercel ke liye sabse zaroori hai
 module.exports = app;

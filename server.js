@@ -5,6 +5,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./src/config/db");
 const passport = require("passport"); // ✅ 1. Passport require karein
+const authRoutes = require("./src/routes/authRoutes");
 
 // ✅ 2. Passport Config Import karein (Jo file hum ne banayi thi)
 require("./src/config/passport"); 
@@ -37,8 +38,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+
 // ✅ 3. Passport Initialize (Social Login ke liye lazmi hai)
 app.use(passport.initialize());
+
+
 
 // Root route
 app.get("/", (req, res) => {
@@ -66,6 +70,8 @@ io.on("connection", (socket) => {
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/tasks", require("./src/routes/taskRoutes"));
 app.use("/api/analytics", require("./src/routes/analyticsRoutes"));
+
+app.use("/api/auth", authRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

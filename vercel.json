@@ -7,8 +7,13 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/auth/(.*)", "destination": "server.js" },
-    { "source": "/api/tasks/(.*)", "destination": "server.js" },
-    { "source": "/(.*)", "destination": "server.js" }
+    {
+      "source": "/api/(.*)",
+      "destination": "server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "server.js"
+    }
   ]
 }

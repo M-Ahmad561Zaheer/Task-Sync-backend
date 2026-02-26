@@ -7,9 +7,8 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "server.js"
-    }
+    { "source": "/api/auth/(.*)", "destination": "server.js" },
+    { "source": "/api/tasks/(.*)", "destination": "server.js" },
+    { "source": "/(.*)", "destination": "server.js" }
   ]
 }

@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport"); // 👈 Ye add kiya
+const passport = require("passport");
 const jwt = require('jsonwebtoken');
 const { body } = require("express-validator");
 const { registerUser, loginUser } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware"); 
 const User = require("../models/User");
+
+// ✅ Frontend URL ko dynamic banayein
+const FRONTEND_URL = process.env.NODE_ENV === "production" 
+  ? "https://az-tasksync.vercel.app" // Aapka live frontend URL
+  : "http://localhost:5173";
 
 // --- Standard Auth Routes ---
 router.post("/register", 
@@ -36,13 +41,14 @@ router.put("/update-profile", protect, async (req, res) => {
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login`, session: false }),
   (req, res) => {
+    // Token generate karein
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const userData = JSON.stringify({ name: req.user.name, email: req.user.email });
     
-    // Frontend redirect with data
-    res.redirect(`http://localhost:5173/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
+    // ✅ Live Frontend par redirect karein
+    res.redirect(`${FRONTEND_URL}/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
   }
 );
 
@@ -50,12 +56,13 @@ router.get('/google/callback',
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/callback', 
-  passport.authenticate('github', { failureRedirect: '/login', session: false }),
+  passport.authenticate('github', { failureRedirect: `${FRONTEND_URL}/login`, session: false }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const userData = JSON.stringify({ name: req.user.name, email: req.user.email });
     
-    res.redirect(`http://localhost:5173/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
+    // ✅ Live Frontend par redirect karein
+    res.redirect(`${FRONTEND_URL}/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
   }
 );
 

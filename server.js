@@ -6,14 +6,14 @@ const { Server } = require("socket.io");
 const connectDB = require("./src/config/db");
 const passport = require("passport");
 
-// 1. Passport Config Import (Initialize se pehle import zaroori hai)
-require("./src/config/passport"); 
-
 const app = express();
 const server = http.createServer(app);
 
-// Database Connection
+// 1. Database Connection (Pehle DB connect karein)
 connectDB();
+
+// 2. Passport Config (DB ke baad import karein taake models ready hon)
+require("./src/config/passport"); 
 
 const allowedOrigins = [
   "https://az-tasksync.vercel.app",
@@ -37,7 +37,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// ✅ ZAROORI: Passport ko Routes se pehle initialize hona chahiye
+// ✅ Passport Initialize (Routes se pehle hona lazmi hai - Yeh line bilkul sahi jagah hai)
 app.use(passport.initialize());
 
 // Attach io to request
@@ -46,14 +46,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Routes (Order Matters!) ---
+// --- Routes ---
 
-// 1. Root route
+// Root route
 app.get("/", (req, res) => {
   res.send(`🚀 TaskSync Backend is running in ${process.env.NODE_ENV || 'development'} mode...`);
 });
 
-// 2. API Routes (Aik hi baar define karein)
+// API Routes
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/tasks", require("./src/routes/taskRoutes"));
 app.use("/api/analytics", require("./src/routes/analyticsRoutes"));
@@ -78,9 +78,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-});
+// ✅ Local Testing ke liye PORT (Vercel isay ignore kar deta hai)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
 
+// ✅ Vercel ke liye Exports zaroori hai
 module.exports = app;

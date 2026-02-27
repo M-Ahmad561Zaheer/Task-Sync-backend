@@ -18,6 +18,16 @@ const socialAuthLogic = async (profile, done) => {
         googleId: profile.provider === 'google' ? profile.id : null,
         githubId: profile.provider === 'github' ? profile.id : null
       });
+    } else {
+      // Agar user pehle se hai toh sirf ID update kar dein agar missing hai
+      if (profile.provider === 'google' && !user.googleId) {
+        user.googleId = profile.id;
+        await user.save();
+      }
+      if (profile.provider === 'github' && !user.githubId) {
+        user.githubId = profile.id;
+        await user.save();
+      }
     }
     return done(null, user);
   } catch (err) {
@@ -25,42 +35,30 @@ const socialAuthLogic = async (profile, done) => {
   }
 };
 
-// --- Google Strategy (Safe Initialization) ---
+// --- Google Strategy ---
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback"
+      // ✅ Full URL use karein (Vercel dashboard mein ye set hona chahiye)
+      callbackURL: process.env.GOOGLE_CALLBACK_URL 
     },
     (accessToken, refreshToken, profile, done) => socialAuthLogic(profile, done)
   ));
-} else {
-  console.warn("⚠️ Google OAuth IDs missing. Skipping Google Strategy.");
 }
 
-// --- GitHub Strategy (Safe Initialization) ---
+// --- GitHub Strategy ---
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.GITHUB_CALLBACK_URL || "/api/auth/github/callback"
+      callbackURL: process.env.GITHUB_CALLBACK_URL
     },
     (accessToken, refreshToken, profile, done) => socialAuthLogic(profile, done)
   ));
-} else {
-  console.warn("⚠️ GitHub OAuth IDs missing. Skipping GitHub Strategy.");
 }
 
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
-});
-
+// --- Serialize/Deserialize (Sirf EK baar) ---
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });

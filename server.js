@@ -4,7 +4,7 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./src/config/db");
-const passport = require("passport");
+const passport = require("./src/config/passport");
 
 const app = express();
 const server = http.createServer(app);

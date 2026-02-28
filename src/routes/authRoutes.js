@@ -37,36 +37,31 @@ router.put("/update-profile", protect, async (req, res) => {
   }
 });
 
-// --- Google Social Auth Callback ---
+// --- Google Social Auth ---
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
 router.get('/google/callback', 
   passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login`, session: false }),
   (req, res) => {
+    // Token generate karein
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const userData = JSON.stringify({ name: req.user.name, email: req.user.email });
     
-    // ✅ YAHAN _id ADD KAR DI HAI
-    const userData = JSON.stringify({ 
-      _id: req.user._id, 
-      name: req.user.name, 
-      email: req.user.email 
-    });
-    
+    // ✅ Live Frontend par redirect karein
     res.redirect(`${FRONTEND_URL}/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
   }
 );
 
-// --- GitHub Social Auth Callback ---
+// --- GitHub Social Auth ---
+router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
 router.get('/github/callback', 
   passport.authenticate('github', { failureRedirect: `${FRONTEND_URL}/login`, session: false }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const userData = JSON.stringify({ name: req.user.name, email: req.user.email });
     
-    // ✅ YAHAN BHI _id ADD KAR DI HAI
-    const userData = JSON.stringify({ 
-      _id: req.user._id, 
-      name: req.user.name, 
-      email: req.user.email 
-    });
-    
+    // ✅ Live Frontend par redirect karein
     res.redirect(`${FRONTEND_URL}/login-success?token=${token}&user=${encodeURIComponent(userData)}`);
   }
 );

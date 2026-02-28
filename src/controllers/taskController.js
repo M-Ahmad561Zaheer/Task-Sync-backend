@@ -19,16 +19,6 @@ exports.getTasks = async (req, res) => {
   }
 };
 
-// 1. Get ONLY My Tasks (Owned by me)
-exports.getMyTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({ owner: req.user.id }).sort({ createdAt: -1 });
-    res.json(tasks);
-  } catch (err) {
-    res.status(500).json({ message: "Server Error" });
-  }
-};
-
 // 2. Create Task
 exports.createTask = async (req, res) => {
   try {
@@ -40,16 +30,10 @@ exports.createTask = async (req, res) => {
   }
 };
 
-
-// 3. Get Shared Tasks ONLY (Strictly others' tasks)
+// 3. Get Shared Tasks ONLY (List view ke liye)
 exports.getSharedTasks = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const tasks = await Task.find({ 
-      sharedWith: userId, 
-      owner: { $ne: userId } // ✅ Logic: Jiska owner MAIN nahi hoon
-    }).sort({ createdAt: -1 });
-    
+    const tasks = await Task.find({ sharedWith: req.user.id });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: "Server Error" });

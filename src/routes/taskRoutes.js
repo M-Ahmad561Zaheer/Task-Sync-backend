@@ -4,17 +4,15 @@ const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
 const taskCtrl = require("../controllers/taskController");
 
-// taskRoutes.js
-
-// 1. Pehle Static/Specific Routes rakhein
-router.get("/shared/list", protect, taskCtrl.getSharedTasks); // ✅ Isay upar le aayein
-router.get("/", protect, taskCtrl.getTasks);
-
-// 2. Phir Dynamic (ID waale) Routes rakhein
+// CRUD Routes
 router.post("/", protect, taskCtrl.createTask);
+router.get("/", protect, taskCtrl.getTasks);
 router.put("/:id", protect, taskCtrl.updateTask);
 router.delete("/:id", protect, taskCtrl.deleteTask);
+
+// Collaboration & Status Routes
 router.put("/:id/share", protect, taskCtrl.shareTask);
+router.get("/shared/list", protect, taskCtrl.getSharedTasks); 
 router.put("/:id/status", protect, taskCtrl.updateStatus);
 
 module.exports = router;

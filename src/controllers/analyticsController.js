@@ -1,28 +1,35 @@
 const Task = require("../models/Task");
+const mongoose = require("mongoose");
 
 exports.overview = async (req, res) => {
   try {
-    const userId = req.user.id;
-    console.log("Fetching analytics for User ID:", userId);
+    const userId = new mongoose.Types.ObjectId(req.user.id);
 
-    // Flexible query to catch different field names
-    const myTasks = await Task.find({
-      $or: [
-        { owner: userId }, 
-        { user: userId }, 
-        { sharedWith: userId }
-      ]
-    });
+    // ✅ Fix: Sirf OWNED tasks count karein, shared tasks nahi
+    const myTasks = await Task.find({ owner: userId });
 
-    console.log(`Total tasks found in DB for this user: ${myTasks.length}`);
+    console.log(`📊 Analytics - User: ${userId}, Total owned tasks: ${myTasks.length}`);
 
-    // Case-insensitive filtering
+    const now = new Date();
+
     const result = {
-      pending: myTasks.filter(t => t.status?.toLowerCase() === "pending").length,
-      inProgress: myTasks.filter(t => t.status?.toLowerCase() === "in progress").length,
-      completed: myTasks.filter(t => t.status?.toLowerCase() === "completed").length,
-      // AnalyticsController.js suggestion
-overdue: myTasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "Completed").length
+      total: myTasks.length,
+      pending: myTasks.filter((t) => t.status === "Pending").length,
+      inProgress: myTasks.filter((t) => t.status === "In Progress").length,
+      completed: myTasks.filter((t) => t.status === "Completed").length,
+      overdue: myTasks.filter(
+        (t) =>
+          t.dueDate &&
+          new Date(t.dueDate) < now &&
+          t.status !== "Completed"
+      ).length,
+
+      // Bonus: Shared tasks ka alag count
+      sharedWithMe: await Task.countDocuments({ sharedWith: userId }),
+      sharedByMe: await Task.countDocuments({
+        owner: userId,
+        sharedWith: { $not: { $size: 0 } },
+      }),
     };
 
     console.log("📊 Final Analytics Result:", result);

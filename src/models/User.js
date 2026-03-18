@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true, lowercase: true, required: true },
   // ✅ Password ko optional (required: false) kar diya hai social login ke liye
-  password: { 
-    type: String, 
+  password: {
+    type: String,
     required: function() {
       // Agar google ya github ID nahi hai, tab password lazmi chahiye
       return !this.googleId && !this.githubId;

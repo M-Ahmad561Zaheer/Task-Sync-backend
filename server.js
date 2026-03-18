@@ -9,68 +9,68 @@ const passport = require("./src/config/passport");
 const app = express();
 const server = http.createServer(app);
 
-// 1. Database Connection (Pehle DB connect karein)
+// 1. Database Connection
 connectDB();
-
-// 2. Passport Config (DB ke baad import karein taake models ready hon)
-require("./src/config/passport"); 
 
 const allowedOrigins = [
   "https://az-tasksync.vercel.app",
   "https://frontend-task-sync.vercel.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
 ];
 
-// Socket.IO setup
+// 2. Socket.IO Setup
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   },
 });
 
 // --- Middlewares ---
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
-
-// ✅ Passport Initialize (Routes se pehle hona lazmi hai - Yeh line bilkul sahi jagah hai)
 app.use(passport.initialize());
 
-// Attach io to request
+// Attach io to every request (taskController mein use hoga)
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
 // --- Routes ---
-
-// Root route
 app.get("/", (req, res) => {
-  res.send(`🚀 TaskSync Backend is running in ${process.env.NODE_ENV || 'development'} mode...`);
+  res.send(`🚀 TaskSync Backend is running in ${process.env.NODE_ENV || "development"} mode...`);
 });
 
-// API Routes
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/tasks", require("./src/routes/taskRoutes"));
 app.use("/api/analytics", require("./src/routes/analyticsRoutes"));
+app.use("/api/notifications", require("./src/routes/notificationRoutes")); // ✅ Yeh missing tha!
 
-// Socket Logic
+// --- Socket Logic ---
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("🔌 User connected:", socket.id);
+
+  // User apne userId ke room mein join karta hai
   socket.on("join", (userId) => {
     socket.join(userId);
+    console.log(`✅ User ${userId} joined their room`);
   });
+
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("❌ User disconnected:", socket.id);
   });
 });
 
-// Global Error Handler
+// --- Global Error Handler ---
 app.use((err, req, res, next) => {
+  console.error("Global Error:", err.message);
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
     message: err.message,
@@ -78,13 +78,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Local Testing ke liye PORT (Vercel isay ignore kar deta hai)
-if (process.env.NODE_ENV !== 'production') {
+// Local development server
+if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
 }
 
-// ✅ Vercel ke liye Exports zaroori hai
+// Vercel ke liye
 module.exports = app;

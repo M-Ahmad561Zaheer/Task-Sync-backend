@@ -11,7 +11,13 @@ const taskSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   attachments: [String],
-  dueDate: Date
+  dueDate: Date,
+  // ✅ Tags field
+  tags: [{
+    type: String,
+    trim: true,
+    maxlength: 20
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Task", taskSchema);
